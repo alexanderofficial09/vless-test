@@ -1,0 +1,27 @@
+name: Run VLESS Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-vless:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install Docker
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker.io
+
+      - name: Run Xray-core
+        run: |
+          docker run -d --name vless -p 443:443 \
+          -v ${{ github.workspace }}/config.json:/etc/xray/config.json \
+          teddysun/xray
+
+      - name: Keep Alive for 6 Hours
+        run: |
+          echo "VLESS server running..."
+          sleep 21600
