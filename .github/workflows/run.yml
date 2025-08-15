@@ -13,7 +13,44 @@ jobs:
       - name: Install Docker
         run: |
           sudo apt-get update
-          sudo apt-get install -y docker.io
+          sudo apt-get install -y docker.io curl uuid-runtime
+
+      - name: Generate UUID
+        id: uuid
+        run: echo "UUID=$(uuidgen)" >> $GITHUB_ENV
+
+      - name: Create Xray Config
+        run: |
+          cat > config.json <<EOF
+          {
+            "inbounds": [
+              {
+                "port": 443,
+                "protocol": "vless",
+                "settings": {
+                  "clients": [
+                    {
+                      "id": "${{ env.UUID }}",
+                      "flow": "xtls-rprx-vision"
+                    }
+                  ],
+                  "decryption": "none"
+                },
+                "streamSettings": {
+                  "network": "ws",
+                  "wsSettings": {
+                    "path": "/"
+                  }
+                }
+              }
+            ],
+            "outbounds": [
+              {
+                "protocol": "freedom"
+              }
+            ]
+          }
+          EOF
 
       - name: Run Xray-core
         run: |
@@ -21,7 +58,21 @@ jobs:
           -v ${{ github.workspace }}/config.json:/etc/xray/config.json \
           teddysun/xray
 
+      - name: Show Connection Info
+        run: |
+          echo "================================"
+          echo "Public IP:"
+          curl -s ifconfig.me
+          echo ""
+          echo "UUID:"
+          echo "${{ env.UUID }}"
+          echo "Port: 443"
+          echo "Protocol: vless"
+          echo "Transport: ws"
+          echo "Path: /"
+          echo "================================"
+
       - name: Keep Alive for 6 Hours
         run: |
-          echo "VLESS server running..."
+          echo "VLESS server running for 6 hours..."
           sleep 21600
