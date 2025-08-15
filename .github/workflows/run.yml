@@ -12,8 +12,10 @@ jobs:
 
       - name: Install Docker
         run: |
-          sudo apt-get update
-          sudo apt-get install -y docker.io curl uuid-runtime
+          curl -fsSL https://get.docker.com | sh
+
+      - name: Install extra tools
+        run: sudo apt-get update && sudo apt-get install -y curl uuid-runtime
 
       - name: Generate UUID
         id: uuid
